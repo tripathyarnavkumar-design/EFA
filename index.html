@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>FactorLens — Exploratory Factor Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f6fb;--card:#fff;--ink:#14172b;--mut:#636b86;--line:#e3e6f1;--acc:#5b5bf0;--acc2:#9b5cf6;--ok:#0f9d62;--warn:#c98100;--bad:#d6414f;--okb:#e4f6ed;--warnb:#fff2d8;--badb:#fde7e9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1020;--card:#171a30;--ink:#eceefb;--mut:#9aa2c4;--line:#2a2e4d;--okb:#10301f;--warnb:#3a2d0c;--badb:#3a1419}}
+:root[data-theme="dark"]{--bg:#0e1020;--card:#171a30;--ink:#eceefb;--mut:#9aa2c4;--line:#2a2e4d;--okb:#10301f;--warnb:#3a2d0c;--badb:#3a1419}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:960px;margin:0 auto;padding:28px 16px 60px}
+.hero{padding:30px 26px;border-radius:22px;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));margin-bottom:22px}
+.hero h1{margin:0 0 6px;font-size:30px;letter-spacing:-.5px}.hero p{margin:0;opacity:.92;max-width:620px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 2px 14px rgba(40,40,90,.05)}
+.card h2{margin:0 0 4px;font-size:18px;display:flex;gap:10px;align-items:center}
+.n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:13px}
+.sub{color:var(--mut);margin:0 0 14px;font-size:13.5px}
+.tabs{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:12px;width:max-content;max-width:100%;margin-bottom:14px}
+.tabs button{border:0;background:none;padding:8px 16px;border-radius:9px;font:inherit;color:var(--mut);cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12);font-weight:600}
+.drop{display:block;border:2px dashed var(--line);border-radius:14px;padding:34px 16px;text-align:center;color:var(--mut);cursor:pointer;transition:.15s}
+.drop:hover,.drop.h{border-color:var(--acc);background:rgba(91,91,240,.05)}
+textarea{width:100%;min-height:170px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);color:var(--ink);font:13px ui-monospace,Menlo,monospace;resize:vertical}
+.btn{border:0;border-radius:12px;padding:12px 22px;font:inherit;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.btn.s{background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:8px 14px;font-weight:500}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+label.f{display:block;font-weight:600;font-size:13px}label.f small{display:block;font-weight:400;color:var(--mut);margin:2px 0 6px}
+select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border:1px solid var(--acc);color:var(--acc);background:none;border-radius:99px;padding:3px 11px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--acc);color:#fff}.chip.x{border-color:var(--line);color:var(--mut);cursor:not-allowed;text-decoration:line-through}
+.msg{margin-top:10px;font-size:13.5px;color:var(--mut)}.msg.e{color:var(--bad)}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.k{border-radius:14px;padding:14px;border:1px solid var(--line)}.k b{display:block;font-size:24px;letter-spacing:-.5px}.k span{font-size:12.5px;color:var(--mut)}
+.s-ok{background:var(--okb)}.s-warn{background:var(--warnb)}.s-bad{background:var(--badb)}
+.ck{display:flex;gap:12px;padding:12px 14px;border-radius:12px;margin-bottom:8px}.ck i{font-style:normal;font-weight:700;width:22px;flex:none}
+.ck.s-ok i{color:var(--ok)}.ck.s-warn i{color:var(--warn)}.ck.s-bad i{color:var(--bad)}.ck b{display:block}.ck span{color:var(--mut);font-size:13.5px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600;font-size:12.5px}td.d{color:var(--mut);opacity:.55}td.b{font-weight:700}
+h3{margin:22px 0 8px;font-size:15px}.lg{font-size:12.5px;color:var(--mut)}
+details{margin-top:10px;font-size:13.5px;color:var(--mut)}summary{cursor:pointer;color:var(--acc);font-weight:600}
+.v{padding:16px 18px;border-radius:14px;font-size:15.5px;margin-bottom:6px}
+@media print{.noprint{display:none}}
+</style></head><body><div class="w">
+<div class="hero"><h1>FactorLens</h1><p>Find the hidden themes behind your survey or test items. Add your data, press one button, and get a plain-language read-out checked against accepted standards.</p></div>
+
+<div class="card noprint"><h2><span class="n">1</span>Add your data</h2>
+<p class="sub">Rows = respondents, columns = questions (items). Use numeric scores such as 1–5 ratings. A header row with item names is recommended.</p>
+<div class="tabs"><button id="t1" class="on">Upload file</button><button id="t2">Paste data</button></div>
+<div id="p1"><label class="drop" id="dz"><input id="fi" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden><b>Click to choose a file</b> or drop it here<br><span class="lg">CSV, TSV, TXT, Excel (.xlsx / .xls)</span></label></div>
+<div id="p2" hidden><textarea id="ta" placeholder="Paste from Excel, Google Sheets or a CSV. Include the header row."></textarea><div class="row" style="margin-top:10px"><button class="btn s" id="go">Read pasted data</button></div></div>
+<div class="row" style="margin-top:12px"><button class="btn s" id="sm">Try sample data</button><span class="lg">12 items · 300 respondents · 3 built-in themes</span></div>
+<div class="msg" id="st"></div><div class="chips" id="ch"></div></div>
+
+<div class="card noprint"><h2><span class="n">2</span>Options <span class="lg" style="font-weight:400">(defaults are fine)</span></h2>
+<p class="sub">Not sure? Leave everything as is.</p>
+<div class="g">
+<label class="f">Number of factors<small>“Auto” uses parallel analysis, the most accurate method.</small><select id="nf"><option value="0">Auto (recommended)</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+<label class="f">Are the factors related?<small>Most psychological and social constructs are.</small><select id="rt"><option value="p">Probably yes (Promax)</option><option value="v">No, keep independent (Varimax)</option></select></label>
+<label class="f">Highlight loadings from<small>Common cut-off is 0.40.</small><select id="cu"><option>0.30</option><option selected>0.40</option><option>0.50</option></select></label></div>
+<div class="row" style="margin-top:18px"><button class="btn" id="run" disabled>Run factor analysis</button></div></div>
+
+<div id="out"></div>
+<details class="card"><summary>Plain-English glossary &amp; references</summary>
+<p><b>Factor</b> – a hidden theme that makes several items move together. <b>Loading</b> – how strongly an item belongs to a factor (−1 to 1). <b>Communality</b> – share of an item’s variation explained by all factors. <b>KMO / Bartlett</b> – checks that your data is suitable for factor analysis. <b>Cronbach’s α</b> – how consistently the items of a factor measure the same thing.</p>
+<p>Standards applied: Kaiser (1974) KMO; Bartlett (1954); Horn (1965) parallel analysis; Kaiser eigenvalue &gt; 1 (shown for comparison only); Costello &amp; Osborne (2005) for loadings ≥ .40, cross-loadings ≥ .32 and ≥ 3 items per factor; Hair et al. for sample size and communality; Nunnally (1978) for α ≥ .70. Extraction: principal axis factoring. Missing values: listwise deletion.</p></details>
+</div>
+<script>
+const $=s=>document.querySelector(s),f2=x=>x.toFixed(2),f3=x=>x.toFixed(3);
+let D=[],NM=[],OK=[],SEL=[];
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length,T=m=>m[0].map((_,j)=>m.map(r=>r[j]));
+const mul=(a,b)=>a.map(r=>b[0].map((_,j)=>r.reduce((s,v,k)=>s+v*b[k][j],0)));
+function inv(m){const n=m.length,a=m.map((r,i)=>[...r,...r.map((_,j)=>+(i==j))]);
+for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(a[r][i])>Math.abs(a[p][i]))p=r;[a[i],a[p]]=[a[p],a[i]];const d=a[i][i];if(Math.abs(d)<1e-12)return null;a[i]=a[i].map(v=>v/d);for(let r=0;r<n;r++)if(r!=i){const g=a[r][i];if(g)a[r]=a[r].map((v,j)=>v-g*a[i][j])}}return a.map(r=>r.slice(n))}
+function eig(S){const n=S.length,A=S.map(r=>[...r]),V=A.map((_,i)=>A.map((_,j)=>+(i==j)));
+for(let w=0;w<80;w++){let off=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)off+=A[i][j]**2;if(off<1e-20)break;
+for(let p=0;p<n;p++)for(let q=p+1;q<n;q++){if(Math.abs(A[p][q])<1e-14)continue;const th=(A[q][q]-A[p][p])/(2*A[p][q]),t=Math.sign(th||1)/(Math.abs(th)+Math.sqrt(th*th+1)),c=1/Math.sqrt(t*t+1),s=t*c;
+for(let k=0;k<n;k++){const a=A[k][p],b=A[k][q];A[k][p]=c*a-s*b;A[k][q]=s*a+c*b}
+for(let k=0;k<n;k++){const a=A[p][k],b=A[q][k];A[p][k]=c*a-s*b;A[q][k]=s*a+c*b}
+for(let k=0;k<n;k++){const a=V[k][p],b=V[k][q];V[k][p]=c*a-s*b;V[k][q]=s*a+c*b}}}
+const o=A.map((_,i)=>i).sort((i,j)=>A[j][j]-A[i][i]);return{val:o.map(i=>A[i][i]),vec:V.map(r=>o.map(i=>r[i]))}}
+function corr(X){const n=X.length,p=X[0].length,m=X[0].map((_,j)=>mean(X.map(r=>r[j]))),C=Array.from({length:p},()=>Array(p).fill(0));
+for(const r of X)for(let i=0;i<p;i++){const d=r[i]-m[i];for(let j=i;j<p;j++)C[i][j]+=d*(r[j]-m[j])}
+for(let i=0;i<p;i++)for(let j=i;j<p;j++){C[i][j]/=n-1;C[j][i]=C[i][j]}
+const s=C.map((r,i)=>Math.sqrt(r[i]));return{C,R:C.map((r,i)=>r.map((v,j)=>v/(s[i]*s[j])))}}
+function lg(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,.1208650973866179e-2,-.5395239384953e-5];let y=x,t=x+5.5;t-=(x+.5)*Math.log(t);let s=1.000000000190015;for(const v of c)s+=v/++y;return -t+Math.log(2.5066282746310005*s/x)}
+function qg(a,x){if(x<=0)return 1;if(x<a+1){let s=1/a,d=s,n=a;for(let i=0;i<500;i++){n++;d*=x/n;s+=d;if(Math.abs(d)<Math.abs(s)*1e-12)break}return 1-s*Math.exp(-x+a*Math.log(x)-lg(a))}
+let b=x+1-a,c=1e300,d=1/b,h=d;for(let i=1;i<500;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const l=d*c;h*=l;if(Math.abs(l-1)<1e-12)break}return Math.exp(-x+a*Math.log(x)-lg(a))*h}
+function paf(R,k){const Ri=inv(R);let h=R.map((_,i)=>Ri?1-1/Ri[i][i]:.5),L;
+for(let it=0;it<300;it++){const e=eig(R.map((r,i)=>r.map((v,j)=>i==j?h[i]:v)));L=e.vec.map(r=>r.slice(0,k).map((v,j)=>v*Math.sqrt(Math.max(e.val[j],0))));
+const hn=L.map(r=>r.reduce((s,v)=>s+v*v,0)),dm=Math.max(...hn.map((v,i)=>Math.abs(v-h[i])));h=hn;if(dm<1e-6)break}return L}
+function varimax(L){const p=L.length,k=L[0].length,h=L.map(r=>Math.sqrt(r.reduce((s,v)=>s+v*v,0))||1),X=L.map((r,i)=>r.map(v=>v/h[i]));
+for(let it=0;it<200;it++){let ch=0;for(let a=0;a<k;a++)for(let b=a+1;b<k;b++){let A=0,B=0,C=0,D=0;
+for(const r of X){const x=r[a],y=r[b],u=x*x-y*y,v=2*x*y;A+=u;B+=v;C+=u*u-v*v;D+=2*u*v}
+const g=Math.atan2(D-2*A*B/p,C-(A*A-B*B)/p)/4;if(Math.abs(g)<1e-7)continue;ch+=Math.abs(g);const c=Math.cos(g),s=Math.sin(g);
+for(const r of X){const x=r[a],y=r[b];r[a]=c*x+s*y;r[b]=-s*x+c*y}}if(ch<1e-6)break}return X.map((r,i)=>r.map(v=>v*h[i]))}
+function promax(Lv){const P=Lv.map(r=>r.map(v=>Math.sign(v)*Math.abs(v)**4)),Lt=T(Lv),U0=mul(inv(mul(Lt,Lv)),mul(Lt,P)),Ui=inv(mul(T(U0),U0)),U=U0.map(r=>r.map((v,j)=>v*Math.sqrt(Ui[j][j])));return{L:mul(Lv,U),Phi:inv(mul(T(U),U))}}
+function tidy(L,Phi){const k=L[0].length,ss=[...Array(k)].map((_,j)=>L.reduce((s,r)=>s+r[j]**2,0)),o=ss.map((_,i)=>i).sort((a,b)=>ss[b]-ss[a]),sg=o.map(j=>L.reduce((s,r)=>s+r[j],0)<0?-1:1);
+return{L:L.map(r=>o.map((j,x)=>r[j]*sg[x])),Phi:Phi&&o.map((a,x)=>o.map((b,y)=>Phi[a][b]*sg[x]*sg[y])),ss:o.map(j=>ss[j])}}
+function gauss(){return Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(6.283185307*Math.random())}
+function parallel(n,p,it=100){const res=[...Array(p)].map(()=>[]);for(let s=0;s<it;s++){const X=Array.from({length:n},()=>Array.from({length:p},gauss));eig(corr(X).R).val.forEach((v,i)=>res[i].push(v))}return res.map(a=>a.sort((x,y)=>x-y)[Math.floor(.95*(it-1))])}
+
+/* ---------- data input ---------- */
+function fin(rows){rows=rows.filter(r=>r.some(c=>String(c).trim()!==''));if(rows.length<4)throw'Need a header (optional) and at least a few rows of data.';
+const w=Math.max(...rows.map(r=>r.length)),num=v=>v!==''&&v!=null&&!isNaN(+v),hd=rows[0].some(v=>String(v).trim()!==''&&isNaN(+v)),b=rows.slice(hd?1:0);
+NM=[...Array(w)].map((_,j)=>hd&&String(rows[0][j]??'').trim()?String(rows[0][j]).trim():'V'+(j+1));
+D=b.map(r=>NM.map((_,j)=>{const v=r[j];return num(typeof v==='string'?v.trim():v)?+v:NaN}));
+OK=NM.map((_,j)=>{const c=D.map(r=>r[j]).filter(Number.isFinite);if(c.length<.5*b.length)return'not numeric';if(new Set(c).size<2)return'no variation';return''});
+SEL=OK.map((r,j)=>r?-1:j).filter(j=>j>=0);chips();ready();
+$('#st').className='msg';$('#st').textContent=`Loaded ${b.length} rows and ${SEL.length} usable numeric columns.`+(OK.some(x=>x)?' Non-numeric columns (e.g. IDs) were skipped automatically.':'')}
+function parse(t){const ls=t.replace(/\r/g,'').split('\n').filter(l=>l.trim()),d=['\t',';',',','|'].map(c=>[c,(ls[0]||'').split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];fin(ls.map(l=>l.split(d).map(c=>c.trim().replace(/^"|"$/g,''))))}
+const err=e=>{$('#st').className='msg e';$('#st').textContent=typeof e==='string'?e:'Could not read this data. Check that it is a table of numbers.'};
+function chips(){$('#ch').innerHTML=NM.map((n,j)=>`<button class="chip ${OK[j]?'x':SEL.includes(j)?'on':''}" data-j="${j}" title="${OK[j]||'click to include / exclude'}">${n.replace(/</g,'&lt;')}</button>`).join('')}
+$('#ch').onclick=e=>{const j=e.target.dataset.j;if(j==null||OK[j])return;SEL=SEL.includes(+j)?SEL.filter(x=>x!=j):[...SEL,+j].sort((a,b)=>a-b);chips();ready()};
+function ready(){$('#run').disabled=SEL.length<3}
+const tab=i=>{$('#p1').hidden=i!=1;$('#p2').hidden=i!=2;$('#t1').className=i==1?'on':'';$('#t2').className=i==2?'on':''};
+$('#t1').onclick=()=>tab(1);$('#t2').onclick=()=>tab(2);
+$('#go').onclick=()=>{try{parse($('#ta').value)}catch(e){err(e)}};
+$('#ta').onpaste=()=>setTimeout(()=>{try{parse($('#ta').value)}catch(e){err(e)}},50);
+function file(f){if(!f)return;const r=new FileReader();$('#st').className='msg';$('#st').textContent='Reading '+f.name+'…';
+if(/\.xlsx?$/i.test(f.name)){if(typeof XLSX==='undefined')return err('Excel reader could not load. Save as CSV and upload again.');
+r.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'});fin(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''}))}catch(x){err(x)}};r.readAsArrayBuffer(f)}
+else{r.onload=e=>{try{$('#ta').value=e.target.result.slice(0,2e6);parse(e.target.result)}catch(x){err(x)}};r.readAsText(f)}}
+$('#fi').onchange=e=>file(e.target.files[0]);const dz=$('#dz');
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('h')};dz.ondragleave=()=>dz.classList.remove('h');dz.ondrop=e=>{e.preventDefault();dz.classList.remove('h');file(e.dataTransfer.files[0])};
+$('#sm').onclick=()=>{let s=7;const rn=()=>{s=(s*16807)%2147483647;return s/2147483647},g=()=>Math.sqrt(-2*Math.log(rn()))*Math.cos(6.2832*rn()),
+ld=[.78,.72,.8,.68,.75,.7,.82,.66,.74,.79,.71,.69],rows=['Q1\tQ2\tQ3\tQ4\tQ5\tQ6\tQ7\tQ8\tQ9\tQ10\tQ11\tQ12'];
+for(let i=0;i<300;i++){const a=g(),f=[a,.3*a+.95*g(),.3*a+.95*g()];rows.push(ld.map((l,j)=>Math.max(1,Math.min(5,Math.round(3+f[j/4|0]*l*1.1+g()*(1-l)*1.1)))).join('\t'))}
+$('#ta').value=rows.join('\n');tab(2);parse($('#ta').value)};
+
+/* ---------- analysis ---------- */
+$('#run').onclick=()=>{$('#run').textContent='Analysing…';setTimeout(()=>{try{analyse()}catch(e){$('#out').innerHTML=`<div class="card"><div class="ck s-bad"><i>✕</i><div><b>Analysis could not be completed</b><span>${typeof e==='string'?e:'Something unexpected happened.'}</span></div></div></div>`}$('#run').textContent='Run factor analysis'},30)};
+function analyse(){const idx=SEL,nm=idx.map(j=>NM[j]),X=D.map(r=>idx.map(j=>r[j])).filter(r=>r.every(Number.isFinite)),n=X.length,p=idx.length,cut=+$('#cu').value;
+if(p<3)throw'Select at least 3 items.';if(n<30)throw`Only ${n} complete rows remain; at least 30 are needed (100+ recommended).`;if(n<=p)throw'You need more respondents than items.';
+const{C,R}=corr(X),e=eig(R),ev=e.val,Ri=inv(R);if(!Ri||ev[p-1]<1e-8)throw'Some items are perfectly redundant (identical or a sum of others). Remove duplicates in step 1 and try again.';
+const det=ev.reduce((s,v)=>s*v,1);let so=0,sp=0;const msa=nm.map(()=>0),sr=nm.map(()=>0),sq=nm.map(()=>0);
+for(let i=0;i<p;i++)for(let j=0;j<p;j++)if(i!=j){const q=-Ri[i][j]/Math.sqrt(Ri[i][i]*Ri[j][j]);so+=R[i][j]**2;sp+=q*q;sr[i]+=R[i][j]**2;sq[i]+=q*q}
+const kmo=so/(so+sp);nm.forEach((_,i)=>msa[i]=sr[i]/(sr[i]+sq[i]));
+const chi=-(n-1-(2*p+5)/6)*ev.reduce((s,v)=>s+Math.log(v),0),df=p*(p-1)/2,bp=qg(df/2,chi/2);
+const pa=parallel(n,p),kPA=Math.max(1,(()=>{let c=0;while(c<p&&ev[c]>pa[c])c++;return c})()),kK=ev.filter(v=>v>1).length;
+let k=+$('#nf').value||kPA;k=Math.max(1,Math.min(k,Math.floor(p/2)||1));const auto=!+$('#nf').value;
+const L0=paf(R,k),h=L0.map(r=>r.reduce((s,v)=>s+v*v,0));let rot;const obl=$('#rt').value=='p'&&k>1;
+if(k==1)rot=tidy(L0,null);else{const v=varimax(L0);rot=obl?(x=>tidy(x.L,x.Phi))(promax(v)):tidy(v,null)}
+const L=rot.L,asg=L.map(r=>{const a=r.map(Math.abs),m=Math.max(...a);return{f:a.indexOf(m),ok:m>=cut}}),
+cross=L.map(r=>r.filter(v=>Math.abs(v)>=.32).length>1),lowC=h.map(v=>v<.2),tot=h.reduce((s,v)=>s+v,0)/p;
+const fi=[...Array(k)].map((_,f)=>{const it=asg.map((a,i)=>a.ok&&a.f==f?i:-1).filter(i=>i>=0);let al=null;
+if(it.length>1){const sg=it.map(i=>Math.sign(L[i][f])),S=it.reduce((s,i,a)=>s+it.reduce((t,j,b)=>t+sg[a]*sg[b]*C[i][j],0),0),tr=it.reduce((s,i)=>s+C[i][i],0);al=it.length/(it.length-1)*(1-tr/S)}return{it,al}});
+/* interpretation */
+const ck=[],add=(s,t,d)=>ck.push({s,t,d});
+const rat=n/p;add(n>=200&&rat>=10?'ok':n>=100&&rat>=5?'warn':'bad','Sample size',`${n} complete respondents for ${p} items (${f2(rat)} per item). ${n>=200&&rat>=10?'This is comfortably adequate.':n>=100&&rat>=5?'Acceptable, but results may be less stable. 10+ per item is ideal.':'Too small for stable factors; treat results as tentative.'}`+(D.length>n?` ${D.length-n} rows with missing values were dropped.`:''));
+const kl=kmo>=.9?'marvellous':kmo>=.8?'meritorious':kmo>=.7?'middling':kmo>=.6?'mediocre':kmo>=.5?'miserable':'unacceptable',lowM=nm.filter((_,i)=>msa[i]<.5);
+add(kmo>=.7?'ok':kmo>=.5?'warn':'bad','Are the items suitable? (KMO)',`KMO = ${f3(kmo)}, rated “${kl}” (Kaiser, 1974). Values of .60+ are needed; .80+ is good.`+(lowM.length?` Items with individual sampling adequacy below .50: ${lowM.join(', ')}. Consider removing them.`:''));
+add(bp<.05?'ok':'bad','Do the items correlate enough? (Bartlett)',`χ²(${df}) = ${chi.toFixed(1)}, p ${bp<.001?'< .001':'= '+f3(bp)}. ${bp<.05?'The items are correlated enough to look for factors.':'Items are not correlated enough; factor analysis is not appropriate.'}`+(det<1e-5?' Determinant is very small, hinting at overly similar items (multicollinearity).':''));
+add(kPA==kK||auto?'ok':'warn','How many factors?',`Parallel analysis suggests ${kPA} factor${kPA>1?'s':''} (the most accurate rule); the older Kaiser “eigenvalue > 1” rule suggests ${kK}. You are viewing a ${k}-factor solution${auto?'':' (chosen manually)'}.`);
+add(tot>=.6?'ok':tot>=.5?'warn':'bad','Variance explained',`The ${k} factor${k>1?'s':''} explain ${f2(tot*100)}% of the variation in the items. 50% is a minimum and 60%+ is preferred in social science.`);
+const noL=nm.filter((_,i)=>!asg[i].ok),cr=nm.filter((_,i)=>cross[i]),lc=nm.filter((_,i)=>lowC[i]);
+add(noL.length||cr.length?'warn':'ok','Item quality',(noL.length?`No loading of ${cut} or higher: ${noL.join(', ')}. `:'')+(cr.length?`Cross-loading (≥ .32 on 2+ factors): ${cr.join(', ')}. `:'')+(lc.length?`Low communality (< .20): ${lc.join(', ')}. `:'')+(noL.length||cr.length||lc.length?'Consider dropping these items one at a time and re-running.':'Every item loads clearly on a single factor.'));
+const thin=fi.map((f,i)=>f.it.length<3?'F'+(i+1):'').filter(Boolean);add(thin.length?'warn':'ok','Factor strength',thin.length?`${thin.join(', ')} ha${thin.length>1?'ve':'s'} fewer than 3 salient items, which makes a factor weak or unstable.`:'Each factor has at least 3 salient items.');
+const bad=fi.map((f,i)=>f.al!=null&&f.al<.6?'F'+(i+1):'').filter(Boolean),lowA=fi.filter(f=>f.al!=null&&f.al<.7).length;
+add(bad.length?'bad':lowA?'warn':'ok','Reliability (Cronbach’s α)',fi.map((f,i)=>`F${i+1}: ${f.al==null?'n/a':f3(f.al)}`).join(' · ')+'. Values of .70+ are acceptable and .80+ good (Nunnally, 1978).');
+if(h.some(v=>v>1))add('warn','Technical note','One or more communalities exceed 1 (a Heywood case). Try fewer factors or remove very similar items.');
+const nb=ck.filter(c=>c.s=='bad').length,nw=ck.filter(c=>c.s=='warn').length,vs=nb?'bad':nw?'warn':'ok',
+vt={ok:'Overall: your data supports a clear factor structure. All key checks passed.',warn:`Overall: a usable factor structure, with ${nw} point${nw>1?'s':''} to review below.`,bad:`Overall: ${nb} important check${nb>1?'s':''} failed. Interpret the factors cautiously and consider the suggestions below.`}[vs];
+/* render */
+const heat=v=>`style="background:rgba(91,91,240,${Math.min(1,Math.abs(v))*.5})"`,ic={ok:'✓',warn:'!',bad:'✕'},kc=(v,s)=>`class="k s-${s}"`;
+const W=560,H=250,m=36,xs=i=>m+i*(W-2*m)/Math.max(1,p-1),mx=Math.max(ev[0],pa[0],1.5)*1.08,ys=v=>H-m-v/mx*(H-2*m),pl=a=>a.map((v,i)=>xs(i)+','+ys(v)).join(' ');
+const svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:640px"><g stroke="var(--line)"><line x1="${m}" y1="${H-m}" x2="${W-m}" y2="${H-m}"/><line x1="${m}" y1="${m/2}" x2="${m}" y2="${H-m}"/></g><line x1="${m}" x2="${W-m}" y1="${ys(1)}" y2="${ys(1)}" stroke="var(--mut)" stroke-dasharray="2 4"/><polyline points="${pl(pa)}" fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="6 4"/><polyline points="${pl(ev)}" fill="none" stroke="var(--acc)" stroke-width="2.5"/>${ev.map((v,i)=>`<circle cx="${xs(i)}" cy="${ys(v)}" r="4" fill="${i<k?'var(--acc)':'var(--card)'}" stroke="var(--acc)" stroke-width="2"/><text x="${xs(i)}" y="${H-m+16}" font-size="11" text-anchor="middle" fill="var(--mut)">${i+1}</text>`).join('')}<text x="${W/2}" y="${H-4}" font-size="11" text-anchor="middle" fill="var(--mut)">Factor number</text><text x="6" y="${m/2+4}" font-size="11" fill="var(--mut)">Eigenvalue</text></svg>`;
+let cum=0;const ftab=[...Array(k)].map((_,f)=>{cum+=ev[f]/p*100;return`<tr><td>Factor ${f+1}</td><td>${f2(ev[f])}</td><td>${f2(ev[f]/p*100)}%</td><td>${f2(cum)}%</td><td>${f2(rot.ss[f])}</td><td>${fi[f].al==null?'–':f3(fi[f].al)}</td><td>${fi[f].it.length}</td></tr>`}).join('');
+$('#out').innerHTML=`<div class="card"><h2><span class="n">3</span>Your results</h2><div class="v s-${vs}">${vt}</div>
+<div class="kp"><div ${kc(0,kmo>=.7?'ok':kmo>=.5?'warn':'bad')}><b>${f2(kmo)}</b><span>KMO (suitability)</span></div><div ${kc(0,bp<.05?'ok':'bad')}><b>${bp<.001?'< .001':f3(bp)}</b><span>Bartlett p-value</span></div><div class="k"><b>${k}</b><span>factors retained (${auto?'auto':'manual'})</span></div><div class="k"><b>${f2(tot*100)}%</b><span>variance explained</span></div></div>
+<h3>What this means</h3>${ck.map(c=>`<div class="ck s-${c.s}"><i>${ic[c.s]}</i><div><b>${c.t}</b><span>${c.d}</span></div></div>`).join('')}
+<h3>Factor loadings <span class="lg">(${obl?'pattern matrix, Promax':k>1?'Varimax':'unrotated'}; bold = ${cut} or higher)</span></h3><div class="sc"><table><tr><th>Item</th>${L[0].map((_,f)=>`<th>F${f+1}</th>`).join('')}<th>Communality</th><th>KMO(item)</th></tr>
+${nm.map((x,i)=>`<tr><td>${x.replace(/</g,'&lt;')}</td>${L[i].map(v=>`<td ${heat(v)} class="${Math.abs(v)>=cut?'b':'d'}">${f2(v)}</td>`).join('')}<td style="color:${lowC[i]?'var(--bad)':'inherit'}">${f2(h[i])}</td><td style="color:${msa[i]<.5?'var(--bad)':'inherit'}">${f2(msa[i])}</td></tr>`).join('')}</table></div>
+${rot.Phi?`<h3>Correlation between factors</h3><div class="sc"><table><tr><th></th>${rot.Phi.map((_,i)=>`<th>F${i+1}</th>`).join('')}</tr>${rot.Phi.map((r,i)=>`<tr><td>F${i+1}</td>${r.map(v=>`<td>${f2(v)}</td>`).join('')}</tr>`).join('')}</table></div><p class="lg">Correlations above about .85 would suggest two factors are really one.</p>`:''}
+<h3>Factor summary</h3><div class="sc"><table><tr><th></th><th>Eigenvalue</th><th>% variance</th><th>Cumulative</th><th>Rotated SS</th><th>Cronbach’s α</th><th>Salient items</th></tr>${ftab}</table></div>
+<h3>Scree plot with parallel analysis</h3>${svg}<p class="lg"><span style="color:var(--acc)">━</span> your data · <span style="color:var(--warn)">╍</span> random-data benchmark (95th percentile). Keep factors where your line is above the dashed line.</p>
+<h3>How to name your factors</h3><div class="sc"><table>${fi.map((f,i)=>`<tr><td><b>Factor ${i+1}</b></td><td style="white-space:normal;text-align:left">${f.it.length?f.it.map(j=>nm[j].replace(/</g,'&lt;')+(L[j][i]<0?' (reversed)':'')).join(', '):'no salient items'}</td></tr>`).join('')}</table></div><p class="lg">Read the item wording within each group and choose a name that captures the common idea.</p>
+<div class="row noprint" style="margin-top:14px"><button class="btn s" onclick="window.print()">Print / save as PDF</button></div></div>`;
+$('#out').scrollIntoView({behavior:'smooth'})}
+</script></body></html>
